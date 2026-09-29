@@ -10,11 +10,14 @@ if "categories" not in st.session_state:
 
 st.subheader("Monthly Budget Allocation")
 
-income_source = st.text_input("Enter your income source:", "Salary")
-income_amount = st.number_input("Enter your monthly income amount:", min_value=0.0, step=100.0)
+months = [
+        "January", "February", "March", "April", "May", "June", 
+        "July", "August", "September", "October", "November", "December"
+    ]
+selected_month = st.selectbox("Select Month:", months)
 
+income_source = st.text_input("Enter your income source:", "Salary")
 expected_income = st.number_input("Enter your expected monthly income:", min_value=0.0, step=100.0)
 
 st.session_state.income_source = income_source
-st.session_state.income_amount = income_amount
 st.session_state.expected_income = expected_income
