@@ -16,3 +16,17 @@ st.subheader("Record an Expense")
 
 expense_date = st.date_input("Date", value=datetime.date.today())
 expense_category = st.selectbox("Category", category_names)
+
+expense_description = st.text_input("Description")
+expense_amount = st.number_input("Amount", min_value=0.0, step=1.0)
+
+if st.button("Add expense"):
+    st.session_state.expenses.append({
+        "date": expense_date,
+        "category": expense_category,
+        "description": expense_description,
+        "amount": expense_amount
+    })
+    st.success("Expense added.")
+
+st.write(st.session_state.expenses)
