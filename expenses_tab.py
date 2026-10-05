@@ -33,3 +33,10 @@ if st.button("Add expense"):
             "amount": expense_amount
         })
         st.success("Expense added.")
+
+st.subheader("Expense History")
+
+if not st.session_state.expenses:
+    st.info("No expenses recorded yet.")
+else:
+    st.dataframe(st.session_state.expenses, use_container_width=True)
