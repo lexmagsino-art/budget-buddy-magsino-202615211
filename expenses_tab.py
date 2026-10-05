@@ -21,12 +21,15 @@ expense_description = st.text_input("Description")
 expense_amount = st.number_input("Amount", min_value=0.0, step=1.0)
 
 if st.button("Add expense"):
-    st.session_state.expenses.append({
-        "date": expense_date,
-        "category": expense_category,
-        "description": expense_description,
-        "amount": expense_amount
-    })
-    st.success("Expense added.")
-
-st.write(st.session_state.expenses)
+    if not expense_description.strip():
+        st.error("Enter a description before adding this expense.")
+    elif expense_amount <= 0:
+        st.error("Enter an amount greater than 0.")
+    else:
+        st.session_state.expenses.append({
+            "date": expense_date,
+            "category": expense_category,
+            "description": expense_description.strip(),
+            "amount": expense_amount
+        })
+        st.success("Expense added.")
