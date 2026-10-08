@@ -80,4 +80,15 @@ for name in st.session_state.categories:
             key=f"amount_{selected_month}_{name}",
             label_visibility="collapsed"
         )
-    
+
+st.divider()
+st.subheader("Budget Summary")
+
+total_planned = sum(st.session_state.categories.values())
+unallocated_income = expected_income - total_planned
+
+st.metric("Total Planned Expenses", f"Php{total_planned:,.2f}")
+st.metric("Unallocated Income", f"Php{unallocated_income:,.2f}")
+
+if unallocated_income < 0:
+    st.warning(f"Your planned expenses exceed your income by Php{abs(unallocated_income):,.2f}.")
