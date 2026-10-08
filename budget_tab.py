@@ -63,3 +63,21 @@ with col2:
     if st.button("Remove Category") and cat_to_remove != "-- None --":
         del st.session_state.categories[cat_to_remove]
         st.rerun()
+
+st.divider()
+st.subheader("Planned Amounts")
+
+for name in st.session_state.categories:
+    col_name, col_amount = st.columns([2, 1])
+    with col_name:
+        st.write(name)
+    with col_amount:
+        st.session_state.categories[name] = st.number_input(
+            f"Planned amount for {name}",
+            min_value=0.0,
+            step=10.0,
+            value=st.session_state.categories[name],
+            key=f"amount_{selected_month}_{name}",
+            label_visibility="collapsed"
+        )
+    
