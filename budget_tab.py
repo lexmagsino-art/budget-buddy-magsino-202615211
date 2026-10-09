@@ -92,3 +92,21 @@ st.metric("Unallocated Income", f"Php{unallocated_income:,.2f}")
 
 if unallocated_income < 0:
     st.warning(f"Your planned expenses exceed your income by Php{abs(unallocated_income):,.2f}.")
+
+st.divider()
+
+if st.button("Save Budget"):
+    other_months_rows = [row for row in load_budget_data() if row["month"] != selected_month]
+
+    this_month_rows = []
+    for category_name, amount in st.session_state.categories.items():
+        this_month_rows.append({
+            "month": selected_month,
+            "income_source": income_source,
+            "income": expected_income,
+            "category": category_name,
+            "planned_amount": amount
+        })
+
+    save_budget_data(other_months_rows + this_month_rows)
+    st.success("Budget saved.")
