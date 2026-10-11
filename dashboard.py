@@ -30,3 +30,18 @@ def build_breakdown(planned_by_category, actual_by_category):
     for category in actual_by_category:
         if category not in planned_by_category:
             all_categories.append(category)
+
+    breakdown = []
+    for category in all_categories:
+        breakdown.append({
+            "category": category,
+            "planned": planned_by_category.get(category, 0.0),
+            "actual": actual_by_category.get(category, 0.0)
+        })
+    return breakdown
+
+
+def format_money(amount):
+    if amount < 0:
+        return f"-Php{abs(amount):,.2f}"
+    return f"Php{amount:,.2f}"
