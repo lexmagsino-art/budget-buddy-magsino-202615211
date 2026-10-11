@@ -45,3 +45,11 @@ def format_money(amount):
     if amount < 0:
         return f"-Php{abs(amount):,.2f}"
     return f"Php{amount:,.2f}"
+
+def show_summary(income, total_planned, total_actual):
+    remaining = income - total_actual
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Income", format_money(income))
+    col2.metric("Planned Expenses", format_money(total_planned))
+    col3.metric("Actual Expenses", format_money(total_actual))
+    col4.metric("Money Remaining", format_money(remaining))
