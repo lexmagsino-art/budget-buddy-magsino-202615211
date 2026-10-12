@@ -72,3 +72,23 @@ def show_pie_chart(planned_by_category):
     ax.set_title("Planned Budget by Category")
     st.pyplot(fig)
     plt.close(fig)
+
+def show_comparison_chart(breakdown):
+    categories = [item["category"] for item in breakdown]
+    planned = [item["planned"] for item in breakdown]
+    actual = [item["actual"] for item in breakdown]
+
+    positions = list(range(len(categories)))
+    width = 0.4
+
+    fig, ax = plt.subplots()
+    ax.bar([p - width / 2 for p in positions], planned, width, label="Planned")
+    ax.bar([p + width / 2 for p in positions], actual, width, label="Actual")
+    ax.set_xticks(positions)
+    ax.set_xticklabels(categories, rotation=45, ha="right")
+    ax.set_ylabel("Amount (Php)")
+    ax.set_title("Planned vs Actual Spending")
+    ax.legend()
+    fig.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
