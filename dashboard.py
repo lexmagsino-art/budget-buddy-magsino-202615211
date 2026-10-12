@@ -53,3 +53,22 @@ def show_summary(income, total_planned, total_actual):
     col2.metric("Planned Expenses", format_money(total_planned))
     col3.metric("Actual Expenses", format_money(total_actual))
     col4.metric("Money Remaining", format_money(remaining))
+
+def show_pie_chart(planned_by_category):
+    labels = []
+    sizes = []
+    for category, amount in planned_by_category.items():
+        if amount > 0:
+            labels.append(category)
+            sizes.append(amount)
+
+    if not sizes:
+        st.info("No planned amounts above $0 to chart for this month.")
+        return
+
+    fig, ax = plt.subplots()
+    ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
+    ax.axis("equal")
+    ax.set_title("Planned Budget by Category")
+    st.pyplot(fig)
+    plt.close(fig)
