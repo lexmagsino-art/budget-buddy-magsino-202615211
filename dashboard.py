@@ -92,3 +92,23 @@ def show_comparison_chart(breakdown):
     fig.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
+
+def show_breakdown(breakdown):
+    widths = [2, 1, 1, 1.5]
+
+    header = st.columns(widths)
+    header[0].write("**Category**")
+    header[1].write("**Planned**")
+    header[2].write("**Actual**")
+    header[3].write("**Status**")
+
+    for item in breakdown:
+        remaining = item["planned"] - item["actual"]
+        row = st.columns(widths)
+        row[0].write(item["category"])
+        row[1].write(format_money(item["planned"]))
+        row[2].write(format_money(item["actual"]))
+        if remaining < 0:
+            row[3].write(f":red[Over by {format_money(abs(remaining))}]")
+        else:
+            row[3].write(f":green[{format_money(remaining)} left]")
