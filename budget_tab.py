@@ -64,6 +64,30 @@ with col2:
         del st.session_state.categories[cat_to_remove]
         st.rerun()
 
+st.write("")  
+rename_col1, rename_col2 = st.columns(2)
+
+with rename_col1:
+    cat_to_rename = st.selectbox(
+        "Select Category to Rename:",
+        ["-- None --"] + list(st.session_state.categories.keys())
+    )
+
+with rename_col2:
+    new_name = st.text_input("New name:").strip()
+    if st.button("Rename Category") and cat_to_rename != "-- None --" and new_name:
+        if new_name in st.session_state.categories:
+            st.warning("A category with that name already exists.")
+        else:
+            renamed = {}
+            for name, amount in st.session_state.categories.items():
+                if name == cat_to_rename:
+                    renamed[new_name] = amount
+                else:
+                    renamed[name] = amount
+            st.session_state.categories = renamed
+            st.rerun()
+
 st.divider()
 st.subheader("Planned Amounts")
 
