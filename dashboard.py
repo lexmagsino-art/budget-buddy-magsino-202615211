@@ -112,3 +112,33 @@ def show_breakdown(breakdown):
             row[3].write(f":red[Over by {format_money(abs(remaining))}]")
         else:
             row[3].write(f":green[{format_money(remaining)} left]")
+
+st.title("Dashboard")
+
+current_month_name = MONTHS[datetime.date.today().month - 1]
+default_month = st.session_state.get("selected_month", current_month_name)
+selected_month = st.selectbox(
+    "Select Month:", MONTHS, index=MONTHS.index(default_month), key="dashboard_month"
+)
+
+income, planned_by_category = get_month_budget(selected_month)
+actual_by_category = get_month_actuals(selected_month)
+
+if not planned_by_category and not actual_by_category:
+    st.info(f"Nothing saved for {selected_month} yet. Set up a budget on the Budget tab and click Save Budget.")
+else:
+    breakdown = build_breakdown(planned_by_category, actual_by_category)
+    total_planned = sum(planned_by_category.values())
+    total_actual = sum(actual_by_category.values())
+
+    st.subheader("Monthly Financial Summary")
+    show_summary(income, total_planned, total_actual)
+
+    st.divider()
+    st.subheader("Budget Visualization")
+    show_pie_chart(planned_by_category)
+    show_comparison_chart(breakdown)
+
+    st.divider()
+    st.subheader("Budget Breakdown")
+    show_breakdown(breakdown)
