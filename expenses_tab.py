@@ -1,46 +1,26 @@
 import streamlit as st
 import datetime
-from data_loader import load_expense_data, add_expense
+from data_loader import load_budget_data, load_expense_data, add_expense
+from shared import DEFAULT_CATEGORIES, get_month_name
 
 st.title("Expenses")
 
-if "expenses" not in st.session_state:
-    st.session_state.expenses = load_expense_data()
+def get_saved_categories(month):
+    """Category names saved in that month's budget (empty list if none saved)."""
+    names = []
+    for row in load_budget_data():
+        if row["month"] == month and row["category"] not in names:
+            names.append(row["category"])
+    return names
 
-if "categories" not in st.session_state or not st.session_state.categories:
-    st.warning("Set up your budget categories on the Budget tab first.")
-    category_names = []
-else:
-    category_names = [category["name"] for category in st.session_state.categories]
 
-st.subheader("Record an Expense")
+def validate_expense(category, description, amount):
+    """Return an error message, or None if the entry is valid."""
+    if not category:
+        return "Choose a category."
+    if not description.strip():
+        return "Enter a description before adding this expense."
+    if amount <= 0:
+        return "Enter an amount greater than Php0."
+    return None
 
-expense_date = st.date_input("Date", value=datetime.date.today())
-expense_category = st.selectbox("Category", category_names)
-
-expense_description = st.text_input("Description")
-expense_amount = st.number_input("Amount", min_value=0.0, step=1.0)
-
-if st.button("Add expense"):
-    if not expense_description.strip():
-        st.error("Enter a description before adding this expense.")
-    elif expense_amount <= 0:
-        st.error("Enter an amount greater than $0.")
-    else:
-        new_expense = {
-            "date": expense_date.isoformat(),
-            "month": expense_date.strftime("%Y-%m"),
-            "category": expense_category,
-            "description": expense_description.strip(),
-            "amount": expense_amount
-        }
-        st.session_state.expenses.append(new_expense)
-        add_expense(new_expense)
-        st.success("Expense added.")
-
-st.subheader("Expense History")
-
-if not st.session_state.expenses:
-    st.info("No expenses recorded yet.")
-else:
-    st.dataframe(st.session_state.expenses, use_container_width=True)
