@@ -3,11 +3,6 @@ import datetime
 from data_loader import load_budget_data, save_budget_data
 from shared import DEFAULT_CATEGORIES, get_month_options, get_default_month
 
-st.title("Budget Planner")
-st.write("Plan your budget by allocating amounts to different categories.")
-
-st.subheader("Monthly Budget Allocation")
-
 months = get_month_options()
 default_month = get_default_month()
 selected_month = st.selectbox("Select Month:", months, index=months.index(default_month))
@@ -32,6 +27,22 @@ def load_month_into_session(month):
         st.session_state.expected_income = 0.0
         st.session_state.categories = {name: 0.0 for name in DEFAULT_CATEGORIES}
 
+def rename_category(old_name, new_name):
+    """Rename a category, keeping its amount and its place in the list."""
+    renamed = {}
+    for name, amount in st.session_state.categories.items():
+        if name == old_name:
+            renamed[new_name] = amount
+        else:
+            renamed[name] = amount
+    st.session_state.categories = renamed
+
+def calculate_totals(income, categories):
+    """Return (total planned expenses, unallocated income)."""
+    total_planned = sum(categories.values())
+    return total_planned, income - total_planned
+
+
 def show_income_inputs():
     income_source = st.text_input("Enter your income source:", value=st.session_state.income_source)
     expected_income = st.number_input(
@@ -41,12 +52,6 @@ def show_income_inputs():
         value=st.session_state.expected_income
         )
 
-st.session_state.selected_month = selected_month
-st.session_state.income_source = income_source
-st.session_state.expected_income = expected_income
-
-st.divider()
-st.subheader("Category Allocations")
 
 def show_add_and_remove():
     col1, col2 = st.columns(2)
@@ -68,7 +73,7 @@ def show_add_and_remove():
             del st.session_state.categories[cat_to_remove]
             st.rerun()
 
-st.write("")  
+
 def show_rename():
     rename_col1, rename_col2 = st.columns(2)
 
@@ -93,9 +98,6 @@ def show_rename():
                 st.session_state.categories = renamed
                 st.rerun()
 
-st.divider()
-st.subheader("Planned Amounts")
-
 def show_planned_amounts(month):
     for name in st.session_state.categories:
         col_name, col_amount = st.columns([2, 1])
@@ -111,27 +113,27 @@ def show_planned_amounts(month):
                 label_visibility="collapsed"
             )
 
-st.divider()
-st.subheader("Budget Summary")
 
-total_planned = sum(st.session_state.categories.values())
-unallocated_income = expected_income - total_planned
+def show_summary(income):
+    st.subheader("Budget Summary")
 
-st.metric("Total Planned Expenses", f"Php{total_planned:,.2f}")
-st.metric("Unallocated Income", f"Php{unallocated_income:,.2f}")
+    total_planned, unallocated_income = calculate_totals(income, st.session_state.categories)
 
-if unallocated_income < 0:
-    st.warning(f"Your planned expenses exceed your income by Php{abs(unallocated_income):,.2f}.")
+    st.metric("Total Planned Expenses", f"Php{total_planned:,.2f}")
+    st.metric("Unallocated Income", f"Php{unallocated_income:,.2f}")
 
-st.divider()
+    if unallocated_income < 0:
+        st.warning(f"Your planned expenses exceed your income by Php{abs(unallocated_income):,.2f}.")
 
-if st.button("Save Budget"):
-    if not income_source.strip():
-        st.error("Enter an income source before saving.")
-        st.stop()
-    if not st.session_state.categories:
-        st.error("Add at least one category before saving.")
-        st.stop()
+
+def show_save_button(month, income_source, income):
+    if st.button("Save Budget"):
+        if not income_source.strip():
+            st.error("Enter an income source before saving.")
+            st.stop()
+        if not st.session_state.categories:
+            st.error("Add at least one category before saving.")
+            st.stop()
         
     other_months_rows = [row for row in load_budget_data() if row["month"] != selected_month]
 
@@ -147,3 +149,8 @@ if st.button("Save Budget"):
 
     save_budget_data(other_months_rows + this_month_rows)
     st.success("Budget saved.")
+
+st.title("Budget Planner")
+st.write("Plan your budget by allocating amounts to different categories.")
+
+st.subheader("Monthly Budget Allocation")
