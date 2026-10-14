@@ -65,3 +65,20 @@ def show_expense_form():
         else:
             save_expense(build_expense(expense_date, category, description, amount))
             st.success(f"Added Php{amount:,.2f} to {category} for {month}.")
+
+def show_history():
+    st.subheader("Expense History")
+
+    if not st.session_state.expenses:
+        st.info("No expenses recorded yet.")
+    else:
+        newest_first = sorted(st.session_state.expenses, key=get_expense_date, reverse=True)
+        st.dataframe(newest_first, width="stretch")
+
+st.title("Expenses")
+
+if "expenses" not in st.session_state:
+    st.session_state.expenses = load_expense_data()
+
+show_expense_form()
+show_history()
