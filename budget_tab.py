@@ -22,6 +22,38 @@ def load_month_into_session(month):
         st.session_state.expected_income = 0.0
         st.session_state.categories = {name: 0.0 for name in DEFAULT_CATEGORIES}
 
+def get_previous_month(month):
+    """Return the month before `month` in the month options, or None if there isn't one."""
+    months = get_month_options()
+    position = months.index(month)
+    return months[position - 1] if position > 0 else None
+ 
+ 
+def copy_previous_month(month):
+    """Button callback: replace the on-screen budget with last month's saved budget."""
+    previous_month = get_previous_month(month)
+    if previous_month is None:
+        st.session_state.copy_result = ("warning", "There is no earlier month to copy from.")
+        return
+ 
+    previous_rows = [row for row in load_budget_data() if row["month"] == previous_month]
+    if not previous_rows:
+        st.session_state.copy_result = ("warning", f"No saved budget found for {previous_month}.")
+        return
+ 
+    st.session_state.income_source = previous_rows[0]["income_source"]
+    st.session_state.expected_income = previous_rows[0]["income"]
+    st.session_state.categories = {row["category"]: row["planned_amount"] for row in previous_rows}
+ 
+    for key in list(st.session_state.keys()):
+        if key.startswith(f"amount_{month}_"):
+            del st.session_state[key]
+ 
+    st.session_state.copy_result = (
+        "success",
+        f"Copied {previous_month}'s budget. Review it, then click Save Budget to keep it.",
+    )
+
 def rename_category(old_name, new_name):
     """Rename a category, keeping its amount and its place in the list."""
     renamed = {}
@@ -64,6 +96,23 @@ def save_budget(month, income_source, income, categories):
     other_months_rows = [row for row in load_budget_data() if row["month"] != month]
     this_month_rows = build_budget_rows(month, income_source, income, categories)
     save_budget_data(other_months_rows + this_month_rows)
+
+
+def show_copy_previous_button(month):
+    """Show the button to copy the previous month's budget and display any result."""
+    if st.button("Copy Previous Month"):
+        copy_previous_month(month)
+
+    if "copy_result" in st.session_state:
+        result_type, message = st.session_state.copy_result
+        if result_type == "success":
+            st.success(message)
+        elif result_type == "warning":
+            st.warning(message)
+        elif result_type == "error":
+            st.error(message)
+        del st.session_state.copy_result
+
 
 def show_month_selector():
     months = get_month_options()
@@ -167,25 +216,26 @@ def show_save_button(month, income_source, income):
 
 st.title("Budget Planner")
 st.write("Plan your budget by allocating amounts to different categories.")
-
+ 
 st.subheader("Monthly Budget Allocation")
 selected_month = show_month_selector()
 load_month_if_changed(selected_month)
 income_source, expected_income = show_income_inputs()
 st.session_state.selected_month = selected_month
 st.caption("Save your budget before switching months. Unsaved changes aren't kept.")
-
+show_copy_previous_button(selected_month)
+ 
 st.divider()
 st.subheader("Category Allocations")
 show_add_and_remove()
 st.write("")
 show_rename()
-
+ 
 st.divider()
 show_planned_amounts(selected_month)
-
+ 
 st.divider()
 show_summary(expected_income)
-
+ 
 st.divider()
 show_save_button(selected_month, income_source, expected_income)
