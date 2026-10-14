@@ -65,6 +65,12 @@ def save_budget(month, income_source, income, categories):
     this_month_rows = build_budget_rows(month, income_source, income, categories)
     save_budget_data(other_months_rows + this_month_rows)
 
+def show_month_selector():
+    months = get_month_options()
+    default_month = get_default_month()
+    return st.selectbox("Select Month:", months, index=months.index(default_month))
+
+
 def show_income_inputs():
     income_source = st.text_input("Enter your income source:", value=st.session_state.income_source)
     expected_income = st.number_input(
@@ -73,7 +79,9 @@ def show_income_inputs():
         step=100.0,
         value=st.session_state.expected_income
         )
-
+    st.session_state.income_source = income_source
+    st.session_state.expected_income = expected_income
+    return income_source, expected_income
 
 def show_add_and_remove():
     col1, col2 = st.columns(2)
@@ -129,7 +137,7 @@ def show_planned_amounts(month):
             st.session_state.categories[name] = st.number_input(
                 f"Planned amount for {name}",
                 min_value=0.0,
-                step=10.0,
+                step=100.0,
                 value=st.session_state.categories[name],
                 key=f"amount_{selected_month}_{name}",
                 label_visibility="collapsed"
@@ -149,30 +157,35 @@ def show_summary(income):
 
 
 def show_save_button(month, income_source, income):
-    if st.button("Save Budget"):
-        if not income_source.strip():
-            st.error("Enter an income source before saving.")
-            st.stop()
-        if not st.session_state.categories:
-            st.error("Add at least one category before saving.")
-            st.stop()
-        
-    other_months_rows = [row for row in load_budget_data() if row["month"] != selected_month]
-
-    this_month_rows = []
-    for category_name, amount in st.session_state.categories.items():
-        this_month_rows.append({
-            "month": selected_month,
-            "income_source": income_source,
-            "income": expected_income,
-            "category": category_name,
-            "planned_amount": amount
-        })
-
-    save_budget_data(other_months_rows + this_month_rows)
-    st.success("Budget saved.")
+     if st.button("Save Budget"):
+        error = validate_budget(income_source, st.session_state.categories)
+        if error:
+            st.error(error)
+        else:
+            save_budget(month, income_source, income, st.session_state.categories)
+            st.success(f"Budget for {month} saved.")
 
 st.title("Budget Planner")
 st.write("Plan your budget by allocating amounts to different categories.")
 
 st.subheader("Monthly Budget Allocation")
+selected_month = show_month_selector()
+load_month_if_changed(selected_month)
+income_source, expected_income = show_income_inputs()
+st.session_state.selected_month = selected_month
+st.caption("Save your budget before switching months. Unsaved changes aren't kept.")
+
+st.divider()
+st.subheader("Category Allocations")
+show_add_and_remove()
+st.write("")
+show_rename()
+
+st.divider()
+show_planned_amounts(selected_month)
+
+st.divider()
+show_summary(expected_income)
+
+st.divider()
+show_save_button(selected_month, income_source, expected_income)
