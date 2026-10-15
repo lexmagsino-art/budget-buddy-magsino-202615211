@@ -1,3 +1,4 @@
+from matplotlib.colors import to_rgb
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -5,13 +6,12 @@ import datetime
 from data_loader import load_budget_data, load_expense_data
 from shared import get_month_options, get_default_month
 
-CHART_COLORS = ["#2563EB", "#F59E0B", "#14B8A6", "#8B5CF6", "#17365D", "#F87171", "#38BDF8", "#22C55E"]
-NAVY = "#17365D"
-SOFT = "#DBEAFE"
-CHART_BG = "#F3E3C3"   
-GRID = "#DCC8A0"        
-BLUE = "#2563EB"
-SKY = "#6BA8F7"
+CHART_COLORS = ["#1E3A8A", "#93C5FD", "#2563EB", "#BFDBFE", "#0EA5E9", "#0C4A6E", "#60A5FA", "#3730A3"]
+NAVY = "#14305F"        # chart text
+MUTED = "#5B7DB1"       # small labels
+ACCENT = "#0EA5E9"      # sky blue, the "Actual" line
+CHART_BG = "#F8FBFF"    # same as the card color set in main.py
+GRID = "#DBE7FA"        # chart grid lines
 
 MONTHS = [
     "January", "February", "March", "April", "May", "June",
@@ -85,15 +85,40 @@ def show_pie_chart(planned_by_category):
         if amount > 0:
             labels.append(category)
             sizes.append(amount)
-
+ 
     if not sizes:
         st.info("No planned amounts above Php0 to chart for this month.")
         return
+ 
+    total = sum(sizes)
+    colors = [CHART_COLORS[i % len(CHART_COLORS)] for i in range(len(sizes))]
+ 
+    fig, ax = plt.subplots(figsize=(5, 4))
+    fig.patch.set_alpha(0)  
 
-    fig, ax = plt.subplots()
-    ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
+
+    wedges, _texts, autotexts = ax.pie(
+        sizes, colors=colors, startangle=90, counterclock=False,
+        autopct=lambda pct: f"{pct:.0f}%" if pct >= 6 else "",
+        pctdistance=0.79,
+        wedgeprops={"width": 0.42, "edgecolor": CHART_BG, "linewidth": 2},
+    )
+    for text, color in zip(autotexts, colors):
+        red, green, blue = to_rgb(color)
+        is_light = 0.299 * red + 0.587 * green + 0.114 * blue > 0.6
+        text.set_color(NAVY if is_light else "white")  
+        text.set_fontsize(9)
+        text.set_fontweight("bold")
+ 
+    ax.text(0, 0.1, "Total planned", ha="center", fontsize=8, color=MUTED)
+    ax.text(0, -0.1, f"Php{total:,.0f}", ha="center", fontsize=11, fontweight="bold", color=NAVY)
+ 
+    legend_labels = [f"{label} (Php{size:,.0f})" for label, size in zip(labels, sizes)]
+    ax.legend(wedges, legend_labels, loc="upper center", bbox_to_anchor=(0.5, 0.02),
+              ncol=2, frameon=False, labelcolor=NAVY, fontsize=8)
+    ax.set_title("Planned Budget by Category", color=NAVY, fontsize=13, fontweight="bold", pad=12)
     ax.axis("equal")
-    ax.set_title("Planned Budget by Category")
+    fig.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
 
