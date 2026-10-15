@@ -56,12 +56,27 @@ def format_money(amount):
     return f"Php{amount:,.2f}"
 
 def show_summary(income, total_planned, total_actual):
-    remaining = income - total_actual
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Income", format_money(income))
-    col2.metric("Planned Expenses", format_money(total_planned))
-    col3.metric("Actual Expenses", format_money(total_actual))
-    col4.metric("Money Remaining", format_money(remaining))
+    if total_planned > 0:
+        used_hint = f"{total_actual / total_planned:.0%} of budget used"
+    else:
+        used_hint = "No budget planned yet"
+    remaining = total_planned - total_actual
+ 
+    cards = [
+        ("Available Balance", income - total_actual, f"Income: {format_money(income)}"),
+        ("Total Budget", total_planned, "Planned for the month"),
+        ("Total Expenses", total_actual, used_hint),
+        ("Remaining Budget", remaining, "Over budget!" if remaining < 0 else "Still available to spend"),
+    ]
+    for i, (col, (label, value, hint)) in enumerate(zip(st.columns(4), cards)):
+        with col:
+            with st.container(border=True, key=f"card_metric_{i}"):
+                st.metric(label, format_money(value))
+                st.caption(hint)
+ 
+    if total_planned > 0:
+        used = total_actual / total_planned
+        st.progress(min(used, 1.0), text=f"Overall budget used: {used:.0%}")
 
 def show_pie_chart(planned_by_category):
     labels = []
