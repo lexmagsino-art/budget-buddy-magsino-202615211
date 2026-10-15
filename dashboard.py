@@ -1,7 +1,17 @@
+import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import datetime
 from data_loader import load_budget_data, load_expense_data
+from shared import get_month_options, get_default_month
+
+CHART_COLORS = ["#2563EB", "#F59E0B", "#14B8A6", "#8B5CF6", "#17365D", "#F87171", "#38BDF8", "#22C55E"]
+NAVY = "#17365D"
+SOFT = "#DBEAFE"
+CHART_BG = "#F3E3C3"   
+GRID = "#DCC8A0"        
+BLUE = "#2563EB"
+SKY = "#6BA8F7"
 
 MONTHS = [
     "January", "February", "March", "April", "May", "June",
@@ -40,7 +50,6 @@ def build_breakdown(planned_by_category, actual_by_category):
         })
     return breakdown
 
-
 def format_money(amount):
     if amount < 0:
         return f"-Php{abs(amount):,.2f}"
@@ -63,7 +72,7 @@ def show_pie_chart(planned_by_category):
             sizes.append(amount)
 
     if not sizes:
-        st.info("No planned amounts above $0 to chart for this month.")
+        st.info("No planned amounts above Php0 to chart for this month.")
         return
 
     fig, ax = plt.subplots()
@@ -117,8 +126,11 @@ st.title("Dashboard")
 
 current_month_name = MONTHS[datetime.date.today().month - 1]
 default_month = st.session_state.get("selected_month", current_month_name)
+months = get_month_options()
 selected_month = st.selectbox(
-    "Select Month:", MONTHS, index=MONTHS.index(default_month), key="dashboard_month"
+    "Select Month:", months,
+    index=months.index(st.session_state.get("selected_month", get_default_month())),
+    key="dashboard_month"
 )
 
 income, planned_by_category = get_month_budget(selected_month)
