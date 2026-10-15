@@ -74,13 +74,40 @@ def show_expense_form():
             st.success(f"Added Php{amount:,.2f} to {category} for {month}.")
  
 def show_history():
-    st.subheader("Expense History")
-
     if not st.session_state.expenses:
         st.info("No expenses recorded yet.")
-    else:
-        newest_first = sorted(st.session_state.expenses, key=get_expense_date, reverse=True)
-        st.dataframe(newest_first, width="stretch")
+        return
+ 
+    newest_first = sorted(st.session_state.expenses, key=get_expense_date, reverse=True)
+ 
+    display_rows = []
+    for expense in newest_first:
+        expense_date = datetime.date.fromisoformat(expense["date"])
+        display_rows.append({
+            "date": expense_date,
+            "month": expense_date.strftime("%B %Y"),   # e.g. October 2026
+            "category": expense["category"],
+            "description": expense["description"],
+            "amount": expense["amount"],
+        })
+ 
+    biggest = max(row["amount"] for row in display_rows)
+    st.dataframe(
+        display_rows,
+        width="stretch",
+        hide_index=True,
+        column_order=["date", "month", "category", "description", "amount"],
+        column_config={
+            "date": st.column_config.DateColumn("Date", format="MMM D, YYYY"),
+            "month": st.column_config.TextColumn("Month"),
+            "category": st.column_config.TextColumn("Category"),
+            "description": st.column_config.TextColumn("Description", width="large"),
+            "amount": st.column_config.ProgressColumn(
+                "Amount", format="Php %.2f", min_value=0, max_value=max(biggest, 1)
+            ),
+        },
+    )
+ 
 
 st.title("Expenses")
 
