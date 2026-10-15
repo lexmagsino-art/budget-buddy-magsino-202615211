@@ -210,18 +210,23 @@ def show_planned_amounts(month):
 
 def show_summary(income):
     st.subheader("Budget Summary")
-
+ 
     total_planned, unallocated_income = calculate_totals(income, st.session_state.categories)
-
+ 
     st.metric("Total Planned Expenses", f"Php{total_planned:,.2f}")
     st.metric("Unallocated Income", f"Php{unallocated_income:,.2f}")
-
+ 
+    if income > 0:
+        allocated = total_planned / income
+        st.progress(min(allocated, 1.0), text=f"{allocated:.0%} of your income is allocated")
+    else:
+        st.caption("Enter your expected income to see how much is allocated.")
+ 
     if unallocated_income < 0:
         st.warning(f"Your planned expenses exceed your income by Php{abs(unallocated_income):,.2f}.")
 
-
 def show_save_button(month, income_source, income):
-     if st.button("Save Budget"):
+    if st.button("Save Budget", type="primary"):
         error = validate_budget(income_source, st.session_state.categories)
         if error:
             st.error(error)
