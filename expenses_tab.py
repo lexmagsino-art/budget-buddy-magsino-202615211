@@ -44,28 +44,35 @@ def get_expense_date(expense):
     return expense["date"]
 
 def show_expense_form():
-    st.subheader("Record an Expense")
-
-    expense_date = st.date_input("Date", value=datetime.date.today())
+    col_date, col_category = st.columns(2)
+    with col_date:
+        expense_date = st.date_input("Date", value=datetime.date.today())
     month = get_month_name(expense_date)
-
+ 
     category_names = get_saved_categories(month)
-    if not category_names:
+    using_defaults = not category_names
+    if using_defaults:
         category_names = DEFAULT_CATEGORIES.copy()
+ 
+    with col_category:
+        category = st.selectbox("Category", category_names)
+    if using_defaults:
         st.info(f"No saved budget for {month}, so the default categories are shown.")
-
-    category = st.selectbox("Category", category_names)
-    description = st.text_input("Description")
-    amount = st.number_input("Amount", min_value=0.0, step=100.0)
-
-    if st.button("Add expense"):
+ 
+    col_description, col_amount = st.columns([2, 1])
+    with col_description:
+        description = st.text_input("Description").title()
+    with col_amount:
+        amount = st.number_input("Amount (Php)", min_value=0.0, step=100.0)
+ 
+    if st.button("Add expense", type="primary", icon=":material/add_card:"):
         error = validate_expense(category, description, amount)
         if error:
             st.error(error)
         else:
             save_expense(build_expense(expense_date, category, description, amount))
             st.success(f"Added Php{amount:,.2f} to {category} for {month}.")
-
+ 
 def show_history():
     st.subheader("Expense History")
 
@@ -80,5 +87,5 @@ st.title("Expenses")
 if "expenses" not in st.session_state:
     st.session_state.expenses = load_expense_data()
 
-show_expense_form()
+show_expense_form() 
 show_history()
