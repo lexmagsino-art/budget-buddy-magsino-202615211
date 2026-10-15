@@ -110,9 +110,16 @@ def show_history():
  
 
 st.title("Expenses")
-
+ 
 if "expenses" not in st.session_state:
     st.session_state.expenses = load_expense_data()
-
-show_expense_form() 
-show_history()
+ 
+tab_add, tab_history = st.tabs(["Add expense", "History"])
+ 
+with tab_add:
+    with st.container(border=True, key="card_expense_form"):
+        show_expense_form()
+ 
+with tab_history:
+    with st.container(border=True, key="card_expense_history"):
+        show_history()
