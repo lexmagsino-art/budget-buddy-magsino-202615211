@@ -1,6 +1,6 @@
 import streamlit as st
 import datetime
-from data_loader import load_budget_data, save_budget_data
+from data_loader import load_budget_data, load_expense_data, save_budget_data
 from shared import DEFAULT_CATEGORIES, get_month_options, get_default_month
 
 def load_month_if_changed(month):
@@ -167,12 +167,12 @@ def show_rename():
     with col1:
         to_rename = st.selectbox(
             "Select Category to Rename:",
-            [NONE_OPTION] + list(st.session_state.categories.keys())
+            ["-- None --"] + list(st.session_state.categories.keys())
         )
  
     with col2:
         new_name = st.text_input("New name:").strip()
-        if st.button("Rename Category", icon=":material/edit:") and to_rename != NONE_OPTION and new_name:
+        if st.button("Rename Category", icon=":material/edit:") and to_rename != "-- None --" and new_name:
             if new_name in st.session_state.categories:
                 st.warning("A category with that name already exists.")
             else:
@@ -185,7 +185,6 @@ def show_planned_amounts(month):
     for name in st.session_state.categories:
         col_name, col_amount = st.columns([2, 1])
  
-        # Draw the input first so the progress bar uses the amount just typed in.
         with col_amount:
             st.session_state.categories[name] = st.number_input(
                 f"Planned amount for {name}",
@@ -206,6 +205,7 @@ def show_planned_amounts(month):
                 st.progress(fraction, text=f"Php{spent:,.2f} spent of Php{planned:,.2f}")
                 if spent > planned:
                     st.caption(f":red[Over by Php{spent - planned:,.2f}]")
+ 
 
 
 def show_summary(income):
@@ -237,25 +237,25 @@ def show_save_button(month, income_source, income):
 st.title("Budget Planner")
 st.write("Plan your budget by allocating amounts to different categories.")
  
-st.subheader("Monthly Budget Allocation")
-selected_month = show_month_selector()
-load_month_if_changed(selected_month)
-income_source, expected_income = show_income_inputs()
-st.session_state.selected_month = selected_month
-st.caption("Save your budget before switching months. Unsaved changes aren't kept.")
-show_copy_previous_button(selected_month)
+with st.container(border=True, key="card_setup"):
+    selected_month = show_month_selector()
+    load_month_if_changed(selected_month)
+    income_source, expected_income = show_income_inputs()
+    st.session_state.selected_month = selected_month
+    st.caption("Save your budget before switching months. Unsaved changes aren't kept.")
+    show_copy_previous_button(selected_month)
  
-st.divider()
-st.subheader("Category Allocations")
-show_add_and_remove()
-st.write("")
-show_rename()
+col_left, col_right = st.columns([3, 2])
  
-st.divider()
-show_planned_amounts(selected_month)
+with col_left:
+    with st.container(border=True, key="card_amounts"):
+        st.subheader("Planned Amounts")
+        with st.expander("Add, remove or rename categories"):
+            show_add_and_remove()
+            show_rename()
+        show_planned_amounts(selected_month)
  
-st.divider()
-show_summary(expected_income)
- 
-st.divider()
-show_save_button(selected_month, income_source, expected_income)
+with col_right:
+    with st.container(border=True, key="card_summary"):
+        show_summary(expected_income)
+        show_save_button(selected_month, income_source, expected_income)
