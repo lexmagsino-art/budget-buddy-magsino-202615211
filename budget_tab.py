@@ -54,6 +54,14 @@ def copy_previous_month(month):
         f"Copied {previous_month}'s budget. Review it, then click Save Budget to keep it.",
     )
 
+def get_month_spending(month):
+    """Total actual spending per category for a month (from the expense records)."""
+    spending = {}
+    for row in load_expense_data():
+        if row["month"] == month:
+            spending[row["category"]] = spending.get(row["category"], 0.0) + row["amount"]
+    return spending
+
 def rename_category(old_name, new_name):
     """Rename a category, keeping its amount and its place in the list."""
     renamed = {}
@@ -154,27 +162,21 @@ def show_add_and_remove():
 
 
 def show_rename():
-    rename_col1, rename_col2 = st.columns(2)
-
-    with rename_col1:
-        cat_to_rename = st.selectbox(
+    col1, col2 = st.columns(2)
+ 
+    with col1:
+        to_rename = st.selectbox(
             "Select Category to Rename:",
-            ["-- None --"] + list(st.session_state.categories.keys())
+            [NONE_OPTION] + list(st.session_state.categories.keys())
         )
-
-    with rename_col2:
+ 
+    with col2:
         new_name = st.text_input("New name:").strip()
-        if st.button("Rename Category") and cat_to_rename != "-- None --" and new_name:
+        if st.button("Rename Category", icon=":material/edit:") and to_rename != NONE_OPTION and new_name:
             if new_name in st.session_state.categories:
                 st.warning("A category with that name already exists.")
             else:
-                renamed = {}
-                for name, amount in st.session_state.categories.items():
-                    if name == cat_to_rename:
-                        renamed[new_name] = amount
-                    else:
-                        renamed[name] = amount
-                st.session_state.categories = renamed
+                rename_category(to_rename, new_name)
                 st.rerun()
 
 def show_planned_amounts(month):
