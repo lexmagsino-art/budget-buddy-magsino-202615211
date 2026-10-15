@@ -180,19 +180,32 @@ def show_rename():
                 st.rerun()
 
 def show_planned_amounts(month):
+    spending = get_month_spending(month)
+ 
     for name in st.session_state.categories:
         col_name, col_amount = st.columns([2, 1])
-        with col_name:
-            st.write(name)
+ 
+        # Draw the input first so the progress bar uses the amount just typed in.
         with col_amount:
             st.session_state.categories[name] = st.number_input(
                 f"Planned amount for {name}",
                 min_value=0.0,
                 step=100.0,
                 value=st.session_state.categories[name],
-                key=f"amount_{selected_month}_{name}",
+                key=f"amount_{month}_{name}",
                 label_visibility="collapsed"
             )
+ 
+        planned = st.session_state.categories[name]
+        spent = spending.get(name, 0.0)
+ 
+        with col_name:
+            st.write(f"**{name}**")
+            if planned > 0 or spent > 0:
+                fraction = min(spent / planned, 1.0) if planned > 0 else 1.0
+                st.progress(fraction, text=f"Php{spent:,.2f} spent of Php{planned:,.2f}")
+                if spent > planned:
+                    st.caption(f":red[Over by Php{spent - planned:,.2f}]")
 
 
 def show_summary(income):
