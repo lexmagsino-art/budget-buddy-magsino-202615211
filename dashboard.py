@@ -1,23 +1,16 @@
 from matplotlib.colors import to_rgb
 from matplotlib.patches import FancyBboxPatch, Patch
-import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-import datetime
 from data_loader import load_budget_data, load_expense_data
 from shared import get_month_options, get_default_month
 
 CHART_COLORS = ["#1E3A8A", "#93C5FD", "#2563EB", "#BFDBFE", "#0EA5E9", "#0C4A6E", "#60A5FA", "#3730A3"]
-NAVY = "#14305F"        # chart text
-MUTED = "#5B7DB1"       # small labels
-ACCENT = "#0EA5E9"      # sky blue, the "Actual" line
-CHART_BG = "#F8FBFF"    # same as the card color set in main.py
-GRID = "#DBE7FA"        # chart grid lines
-
-MONTHS = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-]
+NAVY = "#14305F"       
+MUTED = "#5B7DB1"       
+ACCENT = "#0EA5E9"      
+CHART_BG = "#F8FBFF"   
+GRID = "#DBE7FA"        
 
 def get_month_budget(month):
     income = 0.0
@@ -55,6 +48,10 @@ def format_money(amount):
     if amount < 0:
         return f"-Php{abs(amount):,.2f}"
     return f"Php{amount:,.2f}"
+
+def format_percent(pct):
+    """Label for a donut slice: hide labels on slices under 6%."""
+    return f"{pct:.0f}%" if pct >= 6 else ""
 
 def show_summary(income, total_planned, total_actual):
     if total_planned > 0:
@@ -100,7 +97,7 @@ def show_pie_chart(planned_by_category):
 
     wedges, _texts, autotexts = ax.pie(
         sizes, colors=colors, startangle=90, counterclock=False,
-        autopct=lambda pct: f"{pct:.0f}%" if pct >= 6 else "",
+        autopct=format_percent,
         pctdistance=0.79,
         wedgeprops={"width": 0.42, "edgecolor": CHART_BG, "linewidth": 2},
     )
@@ -206,8 +203,6 @@ def show_breakdown(breakdown):
 
 st.title("Dashboard")
 
-current_month_name = MONTHS[datetime.date.today().month - 1]
-default_month = st.session_state.get("selected_month", current_month_name)
 months = get_month_options()
 selected_month = st.selectbox(
     "Select Month:", months,
