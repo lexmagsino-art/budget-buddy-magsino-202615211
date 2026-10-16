@@ -1,4 +1,5 @@
 from matplotlib.colors import to_rgb
+from matplotlib.patches import FancyBboxPatch, Patch
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -164,8 +165,25 @@ def show_comparison_chart(breakdown):
     ax.spines["bottom"].set_linewidth(1.5)
     ax.set_title("Planned vs Actual Spending", color=NAVY, fontsize=13, fontweight="bold", pad=12, loc="left")
     fig.tight_layout()
-    pass
 
+    position = ax.get_position()
+    x_per_inch = (count + 0.2) / (position.width * fig.get_figwidth())
+    y_per_inch = (top * 1.3) / (position.height * fig.get_figheight())
+    aspect = y_per_inch / x_per_inch
+    
+    for i in range(count):
+        for value, offset, color in ((planned[i], -width - 0.02, planned_color), (actual[i], 0.02, actual_color)):
+            if value > 0:
+                draw_rounded_bar(ax, i + offset, width, value, color, aspect)
+                ax.text(i + offset + width / 2, value + top * 0.02, short_amount(value),
+                        ha="center", va="bottom", fontsize=7.5, fontweight="bold", color=NAVY)
+    
+    ax.legend(
+        handles=[Patch(color=planned_color, label="Planned"), Patch(color=actual_color, label="Actual")],
+        loc="upper right", ncol=2, frameon=False, labelcolor=NAVY, fontsize=9,
+    )
+    st.pyplot(fig)
+    plt.close(fig)
 
 def show_breakdown(breakdown):
     widths = [2, 1, 1, 1.5]
