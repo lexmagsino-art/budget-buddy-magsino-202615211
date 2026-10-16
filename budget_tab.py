@@ -205,7 +205,6 @@ def show_planned_amounts(month):
                 st.progress(fraction, text=f"Php{spent:,.2f} spent of Php{planned:,.2f}")
                 if spent > planned:
                     st.caption(f":red[Over by Php{spent - planned:,.2f}]")
- 
 
 
 def show_summary(income):
