@@ -14,7 +14,11 @@ for col, (key, title, text, page, link_label, link_icon) in zip(st.columns(2), b
     with col:
         with st.container(border=True, key=f"hover_cta_{key}"):
             st.markdown(f'<div class="bucket-emoji"></div>', unsafe_allow_html=True)
-            st.subheader(title)
+            st.markdown(
+                f'<div style="font-size:1.75rem; font-weight:700; -webkit-text-stroke:0.6px currentColor; '
+                f'line-height:1.3; margin-bottom:0.5rem;">{title}</div>',
+                unsafe_allow_html=True,
+            )
             st.write(text)
             st.page_link(page, label=link_label, icon=link_icon)
  
