@@ -142,21 +142,30 @@ def show_comparison_chart(breakdown):
     categories = [item["category"] for item in breakdown]
     planned = [item["planned"] for item in breakdown]
     actual = [item["actual"] for item in breakdown]
-
-    positions = list(range(len(categories)))
-    width = 0.4
-
-    fig, ax = plt.subplots()
-    ax.bar([p - width / 2 for p in positions], planned, width, label="Planned")
-    ax.bar([p + width / 2 for p in positions], actual, width, label="Actual")
-    ax.set_xticks(positions)
-    ax.set_xticklabels(categories, rotation=45, ha="right")
-    ax.set_ylabel("Amount (Php)")
-    ax.set_title("Planned vs Actual Spending")
-    ax.legend()
+    planned_color, actual_color = CHART_COLORS[1], CHART_COLORS[0]
+ 
+    count = len(categories)
+    width = 0.34
+    top = max(planned + actual + [1])
+ 
+    fig, ax = plt.subplots(figsize=(5, 4))
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
+ 
+    ax.set_xlim(-0.6, count - 0.4)
+    ax.set_ylim(0, top * 1.3)
+    ax.set_xticks(range(count))
+    ax.set_xticklabels(categories, rotation=30, ha="right", color=NAVY, fontsize=9)
+    ax.set_yticks([])  
+    ax.tick_params(axis="x", length=0)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
+    ax.spines["bottom"].set_linewidth(1.5)
+    ax.set_title("Planned vs Actual Spending", color=NAVY, fontsize=13, fontweight="bold", pad=12, loc="left")
     fig.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
+    pass
+
 
 def show_breakdown(breakdown):
     widths = [2, 1, 1, 1.5]
