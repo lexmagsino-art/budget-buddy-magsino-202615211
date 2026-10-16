@@ -122,6 +122,22 @@ def show_pie_chart(planned_by_category):
     st.pyplot(fig)
     plt.close(fig)
 
+def draw_rounded_bar(ax, x, width, height, color, aspect):
+    radius = min(width / 2, 0.1)
+    bottom = -2 * radius * aspect
+    bar = FancyBboxPatch(
+        (x, bottom), width, height - bottom,
+        boxstyle=f"round,pad=0,rounding_size={radius}",
+        mutation_aspect=aspect, facecolor=color, edgecolor="none",
+    )
+    ax.add_patch(bar)
+
+def short_amount(value):
+    """5400 -> 5.4k, 8000 -> 8k, 650 -> 650 (short labels keep the bars uncluttered)."""
+    if value >= 1000:
+        return f"{value / 1000:.1f}".rstrip("0").rstrip(".") + "k"
+    return f"{value:,.0f}"
+
 def show_comparison_chart(breakdown):
     categories = [item["category"] for item in breakdown]
     planned = [item["planned"] for item in breakdown]
