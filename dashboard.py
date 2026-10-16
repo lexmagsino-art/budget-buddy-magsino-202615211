@@ -186,24 +186,23 @@ def show_comparison_chart(breakdown):
     plt.close(fig)
 
 def show_breakdown(breakdown):
-    widths = [2, 1, 1, 1.5]
-
-    header = st.columns(widths)
-    header[0].write("**Category**")
-    header[1].write("**Planned**")
-    header[2].write("**Actual**")
-    header[3].write("**Status**")
-
     for item in breakdown:
-        remaining = item["planned"] - item["actual"]
-        row = st.columns(widths)
-        row[0].write(item["category"])
-        row[1].write(format_money(item["planned"]))
-        row[2].write(format_money(item["actual"]))
-        if remaining < 0:
-            row[3].write(f":red[Over by {format_money(abs(remaining))}]")
+        planned, actual = item["planned"], item["actual"]
+        remaining = planned - actual
+ 
+        if planned > 0:
+            fraction = min(actual / planned, 1.0)
         else:
-            row[3].write(f":green[{format_money(remaining)} left]")
+            fraction = 1.0 if actual > 0 else 0.0
+ 
+        col_name, col_bar, col_status = st.columns([2, 4, 2])
+        col_name.write(f"**{item['category']}**")
+        with col_bar:
+            st.progress(fraction, text=f"{format_money(actual)} of {format_money(planned)}")
+        if remaining < 0:
+            col_status.write(f":red[Over by {format_money(abs(remaining))}]")
+        else:
+            col_status.write(f":green[{format_money(remaining)} left]")
 
 st.title("Dashboard")
 
